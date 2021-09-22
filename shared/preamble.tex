@@ -1,0 +1,44 @@
+\documentclass[usepdftitle=false, xcolor={table}]{beamer}
+\special{pdf:minorversion 6}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+
+\usepackage[english, russian]{babel}
+
+\usepackage{fontspec}
+\setmainfont[
+  Ligatures=TeX,
+  Extension=.otf,
+  BoldFont=cmunbx,
+  ItalicFont=cmunti,
+  BoldItalicFont=cmunbi,
+]{cmunrm}
+\setsansfont[
+  Ligatures=TeX,
+  Extension=.otf,
+  BoldFont=cmunsx,
+  ItalicFont=cmunsi,
+]{cmunss}
+\usepackage{unicode-math}
+
+\usepackage{hyperref}
+\hypersetup{pdfstartview={FitH},
+            colorlinks=true,
+            linkcolor=magenta,
+            pdfauthor={Павел Соболев}}
+
+\usepackage{booktabs}
+\usepackage{caption}
+
+\usepackage{graphicx}
+\graphicspath{ {../plots/} }
+
+\newcommand{\su}{\vspace{-0.5em}}
+\newcommand{\npar}{\par\vspace{\baselineskip}}
+
+\usepackage{float}
+\input{../../shared/julia_font}
+\input{../../shared/julia_listings}
+\lstset{language=Julia, style=julia}
+
+\setlength{\parindent}{0pt}

@@ -1,0 +1,469 @@
+\input{../../shared/preamble.tex}
+
+\hypersetup{pdftitle={Компьютерные методы небесной механики - Метод Адамса (9-ый семестр, 2021)}}
+
+\title{Компьютерные методы небесной механики}
+\subtitle{Метод Адамса}
+\author{Павел Соболев}
+\date{22 сентября 2021}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Линейные многошаговые методы}
+Рассмотрим задачу с начальными данными в форме
+
+\su
+\begin{equation}
+  y' = f(t, y), \quad y(t_0) = y_0.
+\end{equation}
+
+Результат аппроксимации решения $ y(t) $:
+
+\su
+\begin{equation}
+  y_i \approx y(t_i), \, \text{где} \;\, t_i = t_0 + ih.
+\end{equation}
+
+Линейный многошаговый метод:
+
+\su
+\begin{equation}
+\begin{gathered}
+  y_{n+s} + a_{s-1} \cdot y_{n+s-1} + a_{s-2} \cdot y_{n+s-2} + \cdots + a_0 \cdot y_n = \\
+  = h \cdot (b_s \cdot f(t_{n+s}, y_{n+s}) + b_{s-1} \cdot f(t_{n+s-1}, y_{n+s-1})) \, + \\
+  + \cdots + b_0 \cdot f(t_n, y_n)).
+\end{gathered}
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Примеры явных методов}
+
+Метод Эйлера ($s = 1$, $a_{s-1} = -1$, $b_s = 0$):
+
+\su
+\begin{equation}
+  y_{n+1} = y_n + h f(t_n, y_n);
+\end{equation}
+
+Двухшаговый метод Адамса--Башфорта \\
+($s = 2$, $a_{s-1} = -1$, $b_s = 0$):
+
+\su
+\begin{equation}
+  y_{n+2} = y_{n+1} + \frac{3}{2} h f(t_{n+1}, y_{n+1}) - \frac{1}{2} h f(t_n, y_n);
+\end{equation}
+
+Трёхшаговый метод Адамса--Башфорта \\
+($s = 3$, $a_{s-1} = -1$, $b_s = 0$):
+
+\su
+\begin{equation}
+\begin{gathered}
+  y_{n+3} = y_{n+2} + \frac{23}{12} h f(t_{n+2}, y_{n+2}) \, - \\
+  - \, \frac{16}{12} h f(t_{n+1}, y_{n+1}) + \frac{5}{12} h f(t_n, y_n).
+\end{gathered}
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Коэффициенты методов Адамса--Башфорта}
+
+Используя полиномиальную интерполяцию, находим многочлен $ p $ степени $ s - 1 $, такой что
+
+\su
+\begin{equation}
+  p(t_{n+i}) = f(t_{n+i}, y_{n+i}), \quad i = 0, \ldots, s - 1.
+\end{equation}
+
+Интерполяционный многочлен Лагранжа:
+
+\su
+\begin{equation}
+  p(t) = \sum_{j=0}^{s-1} \frac{(-1)^{s-j-1} f(t_{n+j}, y_{n+j})}{j! \, (s-j-1)! \, h^{s-1}} \prod_{\substack{i=0 \\ i \neq j}}^{s-1}(t - t_{n+i}).
+\end{equation}
+
+Решение уравнения $ y' = p(t) $ --- интеграл от $ p $, а значит,
+
+\su
+\begin{equation}
+  y_{n+s} = y_{n+s-1} + \int_{t_{n+s-1}}^{t_{n+s}} p(t) \, dt.
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Точность явных методов}
+
+Подставляя $ p $ в (9), получаем
+
+\su
+\begin{equation}
+\begin{gathered}
+  b_{s-j-1} = \frac{(-1)^j}{j! \, (s-j-1)!} \int_0^1 \prod_{\substack{i=0 \\ i \neq j}}^{s-1}(u + i) \, du, \\
+  j = 0, \ldots, s - 1.
+\end{gathered}
+\end{equation}
+
+Замена $ f(t, y) $ на интерполяционный многочлен $ p $ даёт ошибку порядка $ h^s $. Таким образом, $s$-шаговый явный метод Адамса--Башфорта имеет глобальную ошибку $ O(h^s) $.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Примеры неявных методов}
+
+Обратный метод Эйлера ($s = 0$, $a_{s-1} = -1$, $b_s \neq 0$):
+
+\su
+\begin{equation}
+  y_{n+1} = y_n + h f(t_{n+1}, y_{n+1});
+\end{equation}
+
+Метод трапеций ($s = 1$, $a_{s-1} = -1$, $b_s \neq 0$):
+
+\su
+\begin{equation}
+  y_{n+1} = y_n + \frac{1}{2} h f(t_{n+1}, y_{n+1}) + \frac{1}{2} h f(t_n, y_n);
+\end{equation}
+
+Двухшаговый метод Адамса--Мультона \\
+($s = 2$, $a_{s-1} = -1$, $b_s \neq 0$):
+
+\su
+\begin{equation}
+\begin{gathered}
+  y_{n+2} = y_{n+1} + \frac{5}{12} h f(t_{n+2}, y_{n+2}) + \\
+  + \frac{2}{3} h f(t_{n+1}, y_{n+1} - \frac{1}{12} h f(t_n, y_n)).
+\end{gathered}
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Точность неявных методов}
+
+Метод получения коэффициентов неявных методов аналогичен тому, что был у явных. Однако теперь в процессе интерполяции участвует и точка $ t_n $:
+
+\su
+\begin{equation}
+\begin{gathered}
+  b_{s-j} = \frac{(-1)^j}{j! \, (s-j)!} \int_0^1 \prod_{\substack{i=0 \\ i \neq j}}^s(u + i - 1) \, du, \\
+  j = 0, \ldots, s.
+\end{gathered}
+\end{equation}
+
+Добавление этой точки повышает точность метода до $ O(h^{s+1}) $.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Интегрирование уравнений движения}
+
+Уравнения движения
+
+\su
+\begin{equation}
+  \frac{d\mathbf{r}}{dt} = \mathbf{v}, \quad \frac{d \mathbf{v}}{dt} = \varkappa \frac{\mathbf{r}}{r^3}
+\end{equation}
+
+интегрируются двухшаговым методом Адамса--Башфорта как
+
+\su
+\begin{equation}
+  r_{i+2} = r_{i+1} + \frac{3}{2} h v_{i+1} - \frac{1}{2} h v_i;
+\end{equation}
+
+\su
+\begin{equation}
+  v_{i+2} = v_{i+1} + \frac{3}{2} h \varkappa \frac{r_{i+1}}{r^3} - \frac{1}{2} h \varkappa \frac{r_i}{r^3}.
+\end{equation}
+
+\end{frame}
+
+\captionsetup{singlelinecheck=false, justification=justified}
+
+\begin{frame}[fragile]
+
+\begin{figure}[h!]
+\begin{lstlisting}[
+  caption={Реализация двухшагового метода Адамса-Башфорта}
+]
+# <...>
+# Compute the second value of the solution
+# by using the one-step Euler's method
+ρ = norm(r)^3
+for k in 1:N
+    a = ϰ * r[k] / ρ
+    r[k] += h * v[k]
+    v[k] += h * a
+end
+# Define a couple of independent coefficients
+k₁ = 3 / 2 * h; k₂ = 1 / 2 * h
+# Compute the rest in two steps
+for _ in 2:n
+    ρ = norm(r)^3
+    # Define a couple of dependent coefficients
+    k₃ = k₁ * ϰ / ρ; k₄ = k₂ * ϰ / ρ
+    for k in 1:N
+        a₁ = k₃ * r[k]
+        a₂ = k₄ * rₖ₋₁[k]
+        rₖ₋₁[k] = r[k]
+        r[k] += k₁ * v[k] - k₂ * vₖ₋₁[k]
+        vₖ₋₁[k] = v[k]
+        v[k] += a₁ - a₂
+    end
+end
+# <...>
+\end{lstlisting}
+\end{figure}
+
+\end{frame}
+
+\captionsetup{justification=centering}
+
+\begin{frame}
+\frametitle{Результаты интегрирования положений}
+
+Начальные данные:
+
+\su
+\begin{equation}
+  \mathbf{r} = (1.0, 0.0), \quad \mathbf{v} = (0.0, 0.5).
+\end{equation}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования положений}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ r_{ab2}[1] $ &
+    $ r_{ab2}[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ 0.435437715211439 $ & $ 0.37944842309144 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ 0.432208217258280 $ & $ 0.37809932620572 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ 0.431892934330208 $ & $ 0.37797224730258 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ 0.431861488949840 $ & $ 0.37795962321643 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 10^6 $ & $ 0.431858345247357 $ & $ 0.37795836165169 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 10^7 $ & $ 0.431858030885679 $ & $ 0.37795823550368 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты интегрирования скоростей}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования скоростей}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ v_{ab2}[1] $ &
+    $ v_{ab2}[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ -1.3009362221009624 $ & $ 0.01495356507077894 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ -1.3155265530101994 $ & $ 0.00601992530909697 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ -1.3170072387780147 $ & $ 0.00511198444829579 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ -1.3171555182833297 $ & $ 0.00502104680535662 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 10^6 $ & $ -1.3171703483368804 $ & $ 0.00501195160812497 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 10^7 $ & $ -1.3171718313629457 $ & $ 0.00501104207428813 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты интегрирования положений за цикл}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов \\ интегрирования положений за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ r_{ab2}[1] $ &
+    $ r_{ab2}[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ -0.1604975924005 $ & $ -0.096692805208753 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ 0.8823584231585 $ & $ 0.093325201740137 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ 0.9886444114973 $ & $ 0.009826145714103 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ 0.9988685738941 $ & $ 0.000985674834330 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 2714081 $ & $ 0.9998868981071 $ & $ 0.000098688713746 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 27140809 $ & $ 0.9999886902216 $ & $ 0.000009845830270 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты интегрирования скоростей за цикл}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования скоростей за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ v_{ab2}[1] $ &
+    $ v_{ab2}[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ 0.96438874188171 $ & $ -2.57672146215406 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ -0.21096042231669 $ & $ 0.54435348573780 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ -0.01988354566649 $ & $ 0.50554539418657 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ -0.00197364723866 $ & $ 0.50056440631491 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 2714081 $ & $ -0.00019740040884 $ & $ 0.50005653786030 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 27140809 $ & $ -0.00001969188954 $ & $ 0.50000565475921 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты вычисления интеграла энергии}
+
+Интеграл энергии вычисляется как
+
+\su
+\begin{equation}
+  \frac{1}{2} v^2 - \frac{\varkappa^2}{r} = E = const.
+\end{equation}
+
+Для указанных начальных данных $ E = -0.875 $.
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов вычисления интеграла энергии}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ E $ &
+    $ \Delta E $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ -0.8850625221433668 $ & $ 0.010062522143366781 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ -0.8760787029383865 $ & $ 0.001078702938386522 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ -0.8751086216122844 $ & $ 0.000108621612284421 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ -0.8750108697017762 $ & $ 0.000010869701776217 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 10^6 $ & $ -0.8750010870457463 $ & $ 0.000001087045746306 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 10^7 $ & $ -0.8750001087053603 $ & $ 0.000000108705360269 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты вычисления интеграла энергии за цикл}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов \\ вычисления интеграла энергии за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ E $ &
+    $ \Delta E $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ -1.552153224026029 $ & $ 0.677153224026029 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ -0.956627303555853 $ & $ 0.081627303555853 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ -0.883450312956503 $ & $ 0.008450312956504 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ -0.875847910174825 $ & $ 0.000847910174825 $ \\
+    \midrule
+    $ 10^{-6} $ & $ 2714081 $ & $ -0.875084819803159 $ & $ 0.000084819803159 $ \\
+    \midrule
+    $ 10^{-7} $ & $ 27140809 $ & $ -0.875008482268327 $ & $ 0.000008482268327 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{orbit_0.01}
+  \caption{Визуализация орбиты при $ h = 10^{-2} $, $ n = 10^2 $}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{orbit_0.001}
+  \caption{Визуализация орбиты при $ h = 10^{-3} $, $ n = 10^3 $}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{orbit_0.0001}
+  \caption{Визуализация орбиты при $ h = 10^{-4} $, $ n = 10^4 $}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\begin{figure}[h]
+  \centering
+  \includegraphics[scale=0.5]{orbit_1.0e-5}
+  \caption{Визуализация орбиты при $ h = 10^{-5} $, $ n = 10^5 $}
+\end{figure}
+\end{frame}
+
+\end{document}
