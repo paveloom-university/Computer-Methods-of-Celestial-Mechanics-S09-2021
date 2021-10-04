@@ -78,10 +78,11 @@ function motion_ab2_last(
     k₂ = 1 / 2 * h
     # Compute the rest in two steps
     for _ in 2:n
-        ρ = norm(r)^3
+        ρₖ = norm(r)^3
+        ρₖ₋₁ = norm(rₖ₋₁)^3
         # Define a couple of dependent coefficients
-        k₃ = k₁ * ϰ / ρ
-        k₄ = k₂ * ϰ / ρ
+        k₃ = k₁ * ϰ / ρₖ
+        k₄ = k₂ * ϰ / ρₖ₋₁
         for k in 1:N
             a₁ = k₃ * r[k]
             a₂ = k₄ * rₖ₋₁[k]
@@ -220,10 +221,11 @@ function motion_ab2(
     k₂ = 1 / 2 * h
     # Compute the rest in two steps
     for i in 3:(n + 1)
-        ρ = norm(r[i - 1, :])^3
+        ρₖ = norm(r[i - 1, :])^3
+        ρₖ₋₁ = norm(r[i - 2, :])^3
         # Define a couple of dependent coefficients
-        k₃ = k₁ * ϰ / ρ
-        k₄ = k₂ * ϰ / ρ
+        k₃ = k₁ * ϰ / ρₖ
+        k₄ = k₂ * ϰ / ρₖ₋₁
         for k in 1:N
             r[i, k] = r[i - 1, k] + k₁ * v[i - 1, k] - k₂ * v[i - 2, k]
             v[i, k] = v[i - 1, k] + k₃ * r[i - 1, k] - k₄ * r[i - 2, k]
@@ -398,26 +400,29 @@ function motion3_ab2(
     k₂ = 1 / 2 * h
     # Compute the rest in two steps
     for i in 3:(n + 1)
-        ρ₁₂ = norm(r₁[i - 1, :] - r₂[i - 1, :])^3
-        ρ₁₃ = norm(r₁[i - 1, :] - r₃[i - 1, :])^3
-        ρ₂₃ = norm(r₂[i - 1, :] - r₃[i - 1, :])^3
+        ρ₁₂_ₖ = norm(r₁[i - 1, :] - r₂[i - 1, :])^3
+        ρ₁₃_ₖ = norm(r₁[i - 1, :] - r₃[i - 1, :])^3
+        ρ₂₃_ₖ = norm(r₂[i - 1, :] - r₃[i - 1, :])^3
+        ρ₁₂_ₖ₋₁ = norm(r₁[i - 2, :] - r₂[i - 2, :])^3
+        ρ₁₃_ₖ₋₁ = norm(r₁[i - 2, :] - r₃[i - 2, :])^3
+        ρ₂₃_ₖ₋₁ = norm(r₂[i - 2, :] - r₃[i - 2, :])^3
         # Define a couple of dependent coefficients
         for k in 1:N
             r₁[i, k] = r₁[i - 1, k] + k₁ * v₁[i - 1, k] - k₂ * v₁[i - 2, k]
-            v₁[i, k] = v₁[i - 1, k] + k₁ * ϰ * (r₁[i - 1, k] - r₂[i - 1, k]) / ρ₁₂ +
-                                      k₁ * ϰ * (r₁[i - 1, k] - r₃[i - 1, k]) / ρ₁₃ -
-                                      k₂ * ϰ * (r₁[i - 2, k] - r₂[i - 2, k]) / ρ₁₂ -
-                                      k₂ * ϰ * (r₁[i - 2, k] - r₃[i - 2, k]) / ρ₁₃
+            v₁[i, k] = v₁[i - 1, k] + k₁ * ϰ * (r₁[i - 1, k] - r₂[i - 1, k]) / ρ₁₂_ₖ +
+                                      k₁ * ϰ * (r₁[i - 1, k] - r₃[i - 1, k]) / ρ₁₃_ₖ -
+                                      k₂ * ϰ * (r₁[i - 2, k] - r₂[i - 2, k]) / ρ₁₂_ₖ₋₁ -
+                                      k₂ * ϰ * (r₁[i - 2, k] - r₃[i - 2, k]) / ρ₁₃_ₖ₋₁
             r₂[i, k] = r₂[i - 1, k] + k₁ * v₂[i - 1, k] - k₂ * v₂[i - 2, k]
-            v₂[i, k] = v₂[i - 1, k] + k₁ * ϰ * (r₂[i - 1, k] - r₁[i - 1, k]) / ρ₁₂ +
-                                      k₁ * ϰ * (r₂[i - 1, k] - r₃[i - 1, k]) / ρ₂₃ -
-                                      k₂ * ϰ * (r₂[i - 2, k] - r₁[i - 2, k]) / ρ₁₂ -
-                                      k₂ * ϰ * (r₂[i - 2, k] - r₃[i - 2, k]) / ρ₂₃
+            v₂[i, k] = v₂[i - 1, k] + k₁ * ϰ * (r₂[i - 1, k] - r₁[i - 1, k]) / ρ₁₂_ₖ +
+                                      k₁ * ϰ * (r₂[i - 1, k] - r₃[i - 1, k]) / ρ₂₃_ₖ -
+                                      k₂ * ϰ * (r₂[i - 2, k] - r₁[i - 2, k]) / ρ₁₂_ₖ₋₁ -
+                                      k₂ * ϰ * (r₂[i - 2, k] - r₃[i - 2, k]) / ρ₂₃_ₖ₋₁
             r₃[i, k] = r₃[i - 1, k] + k₁ * v₃[i - 1, k] - k₂ * v₃[i - 2, k]
-            v₃[i, k] = v₃[i - 1, k] + k₁ * ϰ * (r₃[i - 1, k] - r₁[i - 1, k]) / ρ₁₃ +
-                                      k₁ * ϰ * (r₃[i - 1, k] - r₂[i - 1, k]) / ρ₂₃ -
-                                      k₂ * ϰ * (r₃[i - 2, k] - r₁[i - 2, k]) / ρ₁₃ -
-                                      k₂ * ϰ * (r₃[i - 2, k] - r₂[i - 2, k]) / ρ₂₃
+            v₃[i, k] = v₃[i - 1, k] + k₁ * ϰ * (r₃[i - 1, k] - r₁[i - 1, k]) / ρ₁₃_ₖ +
+                                      k₁ * ϰ * (r₃[i - 1, k] - r₂[i - 1, k]) / ρ₂₃_ₖ -
+                                      k₂ * ϰ * (r₃[i - 2, k] - r₁[i - 2, k]) / ρ₁₃_ₖ₋₁ -
+                                      k₂ * ϰ * (r₃[i - 2, k] - r₂[i - 2, k]) / ρ₂₃_ₖ₋₁
         end
     end
     return r₁, r₂, r₃, v₁, v₂, v₃
