@@ -1,0 +1,414 @@
+\input{../../shared/preamble.tex}
+
+\hypersetup{pdftitle={Компьютерные методы небесной механики - Метод Эрмита (9-ый семестр, 2021)}}
+
+\title{Компьютерные методы небесной механики}
+\subtitle{Метод Эрмита}
+\author{Павел Соболев}
+\date{18 ноября 2021}
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Третья производная положения}
+
+Гравитационное уравнение движения:
+
+\su
+\begin{equation}
+  \mathbf{a}_i = G \sum_{\substack{j = 1 \\ j \neq i}}^N \frac{M_j}{r_{ji}^2} \hat{\mathbf{r}}_{ji},
+\end{equation}
+
+где $ \hat{\mathbf{r}}_{ji} = \mathbf{r}_{ji} / r_{ji} $. Дифференцируя его по времени, получаем
+
+\su
+\begin{equation}
+  \mathbf{j}_i = G \sum_{\substack{j = 1 \\ j \neq i}}^N M_j \left[ \frac{\mathbf{v}_{ji}}{r_{ji}^3} - 3 \frac{(\mathbf{r}_{ji} \cdot \mathbf{v}_{ji}) \, \mathbf{r}_{ji}}{r_{ji}^5} \right]
+\end{equation}
+
+--- рывок, где $ \mathbf{v}_{ji} = \mathbf{v}_j - \mathbf{v}_i $.
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Обобщение над методом leapfrog}
+
+Метод Эрмита (4-ый порядок):
+
+\su
+\begin{equation}
+\begin{gathered}
+  \mathbf{r}_{i+1} = \mathbf{r}_i + \tfrac{1}{2} (\mathbf{v}_i + \mathbf{v}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{a}_i - \mathbf{a}_{i+1}) (\Delta t)^2; \\
+  \mathbf{v}_{i+1} = \mathbf{v}_i + \tfrac{1}{2} (\mathbf{a}_i + \mathbf{a}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{j}_i - \mathbf{j}_{i+1}) (\Delta t)^2.
+\end{gathered}
+\end{equation}
+
+Метод leapfrog (2-ой порядок):
+
+\su
+\begin{equation}
+\begin{gathered}
+  \mathbf{r}_{i+1} = \mathbf{r}_i + \mathbf{v}_{i + 1/2} \Delta t + \mathcal{O} \left( (\Delta t)^3 \right); \\
+  \mathbf{v}_{i+1} = \mathbf{v}_i + \mathbf{a}_{i + 1/2} \Delta t + \mathcal{O} \left( (\Delta t)^3 \right).
+\end{gathered}
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Вывод метода}
+
+Разложим $ \mathbf{r}_{i+1} $, $ \mathbf{v}_{i+1} $, $ \mathbf{a}_{i+1} $ и $ \mathbf{j}_{i+1} $ по степеням $ \Delta t $:
+
+\su\su
+\begin{equation}
+\begin{split}
+  \mathbf{r}_{i+1} & = \mathbf{r}_i + \mathbf{v}_i \Delta t + \tfrac{1}{2} \mathbf{a}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{j}_i (\Delta t)^3 + \tfrac{1}{24} \mathbf{s}_i (\Delta t)^4; \\
+  \mathbf{v}_{i+1} & = \mathbf{v}_i + \mathbf{a}_i \Delta t + \tfrac{1}{2} \mathbf{j}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{s}_i (\Delta t)^3 + \tfrac{1}{24} \mathbf{c}_i (\Delta t)^4; \\
+  \mathbf{a}_{i+1} & = \mathbf{a}_i + \mathbf{j}_i \Delta t + \tfrac{1}{2} \mathbf{s}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{c}_i (\Delta t)^3; \\
+  \mathbf{j}_{i+1} & = \mathbf{j}_i + \mathbf{s}_i \Delta t + \tfrac{1}{2} \mathbf{c}_i (\Delta t)^2.
+\end{split}
+\end{equation}
+
+Используя последние две строки, получаем для $ \mathbf{s}_i $ (snap):
+
+\su
+\begin{equation*}
+  6 \mathbf{a}_{i+1} - 2 \mathbf{j}_{i+1} \Delta t = 6 \mathbf{a}_i + 4 \mathbf{j}_i \Delta t + \mathbf{s}_i (\Delta t)^2, \implies
+\end{equation*}
+
+\su\su\su
+\begin{equation}
+  \mathbf{s}_i (\Delta t)^2 = -6 \mathbf{a}_i + 6 \mathbf{a}_{i+1} - 4 \mathbf{j}_i \Delta t - 2 \mathbf{j}_{i+1} \Delta t.
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Вывод метода}
+
+Домножив последнюю строку в (5) на $ \Delta t $ и подставив (6), получаем для $ \mathbf{c}_i $ (crackle):
+
+\su\su\su
+\begin{equation*}
+  \mathbf{j}_{i+1} \Delta t = -6 \mathbf{a}_i + 6 \mathbf{a}_{i+1} - 3 \mathbf{j}_i \Delta t - 2 \mathbf{j}_{i+1} \Delta t + \tfrac{1}{2} \mathbf{c}_i (\Delta t)^3, \implies
+\end{equation*}
+
+\su\su\su
+\begin{equation}
+  \mathbf{c}_i (\Delta t)^3 = 12 \mathbf{a}_i - 12 \mathbf{a}_{i+1} + 6 \mathbf{j}_i \Delta t + 6 \mathbf{j}_{i+1} \Delta t.
+\end{equation}
+
+Подставляя (6) и (7) во вторую строку (5), получаем
+
+\su\su\su
+\begin{align*}
+  \mathbf{v}_{i+1} - \mathbf{v}_i & = \mathbf{a}_i \Delta t + \tfrac{1}{2} \mathbf{j}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{s}_i (\Delta t)^3 + \tfrac{1}{24} \mathbf{c}_i (\Delta t)^4 \\
+                                  & = \mathbf{a}_i \Delta t + \tfrac{1}{2} \mathbf{j}_i (\Delta t)^2 \\
+                                  & - \mathbf{a}_i \Delta t + \mathbf{a}_{i+1} \Delta t - \tfrac{2}{3} \mathbf{j}_i (\Delta t)^2 - \tfrac{1}{3} \mathbf{j}_{i+1} (\Delta t)^2 \\
+                                  & + \tfrac{1}{2} \mathbf{a}_i \Delta t - \tfrac{1}{2} \mathbf{a}_{i+1} \Delta t + \tfrac{1}{4} \mathbf{j}_i (\Delta t)^2 + \tfrac{1}{4} \mathbf{j}_{i+1} (\Delta t)^2, \implies
+\end{align*}
+
+\su\su\su
+\begin{equation}
+  \mathbf{v}_{i+1} = \mathbf{v}_i + \tfrac{1}{2} (\mathbf{a}_i + \mathbf{a}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{j}_i - \mathbf{j}_{i+1}) (\Delta t)^2.
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Вывод метода}
+
+Выделим из первой строки (5) выражение для метода leapfrog:
+
+\su\su\su
+\begin{align*}
+  \mathbf{r}_{i+1} & - \mathbf{r}_i - \tfrac{1}{2} (\mathbf{v}_i + \mathbf{v}_{i+1}) \Delta t \\
+                   & = \left\{ \mathbf{r}_{i+1} - \mathbf{r}_i \right\} - \tfrac{1}{2} \mathbf{v}_i \Delta t + \left\{ -\tfrac{1}{2} \mathbf{v}_{i+1} \right\} \Delta t \\
+                   & = \left\{ \mathbf{v}_i \Delta t + \tfrac{1}{2} \mathbf{a}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{j}_i (\Delta t)^3 + \tfrac{1}{24} \mathbf{s}_i (\Delta t)^4 \right\} \\
+                   & - \tfrac{1}{2} \mathbf{v}_i \Delta t \\
+                   & + \left\{ -\tfrac{1}{2} \mathbf{v}_i \Delta t - \tfrac{1}{4} (\mathbf{a}_i + \mathbf{a}_{i+1}) (\Delta t)^2 - \tfrac{1}{24} (\mathbf{j}_i - \mathbf{j}_{i+1}) (\Delta t)^3 \right\} \\
+                   & = \tfrac{1}{2} \mathbf{a}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{j}_i (\Delta t)^3 \\
+                   & - \tfrac{1}{4} \mathbf{a}_i (\Delta t)^2 + \tfrac{1}{4} \mathbf{a}_{i+1} (\Delta t)^2 - \tfrac{1}{6} \mathbf{j}_i (\Delta t)^3 - \tfrac{1}{12} \mathbf{j}_{i+1} (\Delta t)^3 \\
+                   & - \tfrac{1}{4} \mathbf{a}_i (\Delta t)^2 - \tfrac{1}{4} \mathbf{a}_{i+1} (\Delta t)^2 - \tfrac{1}{24} \mathbf{j}_i (\Delta t)^3 + \tfrac{1}{24} \mathbf{j}_{i+1} (\Delta t)^3 \\
+                   & = -\tfrac{1}{24} \mathbf{j}_i (\Delta t)^3 - \tfrac{1}{24} \mathbf{j}_{i+1} (\Delta t)^3 \\
+                   & = -\tfrac{1}{24} \mathbf{j}_i (\Delta t)^3 - \tfrac{1}{24} \left\{ \mathbf{j}_i + \mathbf{s}_i \Delta t \right\} (\Delta t)^3 \\
+                   & = -\tfrac{1}{12} \mathbf{j}_i (\Delta t)^3 - \tfrac{1}{24} \mathbf{s}_i (\Delta t)^4. \numberthis
+\end{align*}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Вывод метода}
+
+С требуемой точностью это то, что нужно:
+
+\su\su\su
+\begin{align*}
+  \tfrac{1}{12} (\mathbf{a}_i & - \mathbf{a}_{i+1}) (\Delta t)^2 \\
+                              & = \tfrac{1}{12} \mathbf{a}_i (\Delta t)^2 - \tfrac{1}{12} \left\{ \mathbf{a}_i + \mathbf{j}_i \Delta t + \tfrac{1}{2} \mathbf{s}_i (\Delta t)^2 \right\} (\Delta t)^2 \\
+                              & = -\tfrac{1}{12} \mathbf{j}_i (\Delta t)^3 - \tfrac{1}{24} \mathbf{s}_i (\Delta t)^4. \numberthis
+\end{align*}
+
+А значит,
+
+\su\su
+\begin{equation}
+  \mathbf{r}_{i+1} = \mathbf{r}_i + \tfrac{1}{2} (\mathbf{v}_i + \mathbf{v}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{a}_i - \mathbf{a}_{i+1}) (\Delta t)^2.
+\end{equation}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Реализация}
+
+Имеем систему нелинейных уравнений:
+
+\su\su\su
+\begin{equation}
+\begin{split}
+  \mathbf{r}_{i+1} & = \mathbf{r}_i + \tfrac{1}{2} (\mathbf{v}_i + \mathbf{v}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{a}_i - \mathbf{a}_{i+1}) (\Delta t)^2; \\
+  \mathbf{v}_{i+1} & = \mathbf{v}_i + \tfrac{1}{2} (\mathbf{a}_i + \mathbf{a}_{i+1}) \Delta t + \tfrac{1}{12} (\mathbf{j}_i - \mathbf{j}_{i+1}) (\Delta t)^2.
+\end{split}
+\end{equation}
+
+Итеративный процесс решения: получаем пробные значения
+
+\su\su\su
+\begin{equation}
+\begin{split}
+  \mathbf{r}_{p, i+1} & = \mathbf{r}_i + \mathbf{v}_i \Delta t + \tfrac{1}{2} \mathbf{a}_i (\Delta t)^2 + \tfrac{1}{6} \mathbf{j}_i (\Delta t)^3; \\
+  \mathbf{v}_{p, i+1} & = \mathbf{v}_i + \mathbf{a}_i \Delta t + \tfrac{1}{2} \mathbf{j}_i (\Delta t)^2,
+\end{split}
+\end{equation}
+
+используем их для вычисления $ \mathbf{a}_{p, i+1} $ и $ \mathbf{j}_{p, i+1} $, корректируем:
+
+\su\su\su
+\begin{equation}
+\begin{split}
+  \mathbf{v}_{c, i+1} & = \mathbf{v}_i + \tfrac{1}{2} (\mathbf{a}_i + \mathbf{a}_{p, i+1}) \Delta t + \tfrac{1}{12} (\mathbf{j}_i - \mathbf{j}_{p, i+1}) (\Delta t)^2; \\
+  \mathbf{r}_{c, i+1} & = \mathbf{r}_i + \tfrac{1}{2} (\mathbf{v}_i + \mathbf{v}_{c, i+1}) \Delta t + \tfrac{1}{12} (\mathbf{a}_i - \mathbf{a}_{p, i+1}) (\Delta t)^2.
+\end{split}
+\end{equation}
+
+\end{frame}
+
+\captionsetup{singlelinecheck=false, justification=justified}
+
+\begin{frame}[fragile]
+
+\begin{figure}[h!]
+\begin{lstlisting}[
+  caption={Реализация метода Эрмита}
+]
+# <...>
+# Define the acceleration and jerk functions
+acc(r) = ϰ * r / norm(r)^3
+jerk(r, v) = ϰ * (v / norm(r)^3 -
+             3 * (r ⋅ v) .* r / norm(r)^5)
+# Compute the solution
+for _ = 1:n
+    # Save old values
+    rₒ, vₒ = copy(r), copy(v)
+    aₒ, jₒ = acc(r), jerk(r, v)
+    # Predict position and velocity
+    r += v * h + aₒ * (h^2 / 2) + jₒ * (h^3 / 6)
+    v += aₒ * h + jₒ * (h^2 / 2)
+    # Predict acceleration and jerk
+    a, j = acc(r), jerk(r, v)
+    # Correct velocity and position
+    v = vₒ + (aₒ + a) * (h / 2) + (jₒ - j) * (h^2 / 12)
+    r = rₒ + (vₒ + v) * (h / 2) + (aₒ - a) * (h^2 / 12)
+end
+# <...>
+\end{lstlisting}
+\end{figure}
+
+\end{frame}
+
+\captionsetup{justification=centering}
+
+\begin{frame}
+\frametitle{Результаты интегрирования положений}
+
+Начальные данные:
+
+\su
+\begin{equation}
+  \mathbf{r} = (1.0, 0.0), \quad \mathbf{v} = (0.0, 0.5).
+\end{equation}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования положений}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ r[1] $ &
+    $ r[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ 0.43185799708395 $ & $ 0.37795822375649 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ 0.43185799595678 $ & $ 0.37795822148757 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ 0.43185799595667 $ & $ 0.37795822148734 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ 0.43185799595550 $ & $ 0.37795822148700 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования скоростей}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ v[1] $ &
+    $ v[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ -1.31717198985366 $ & $ 0.00501095407767 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ -1.31717199614327 $ & $ 0.00501094101611 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ -1.31717199614391 $ & $ 0.00501094101480 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ -1.31717199614611 $ & $ 0.00501094101321 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов \\ интегрирования положений за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ r[1] $ &
+    $ r[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ 0.99993813747413 $ & $ -0.00184975466342 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ 0.99999999625280 $ & $ -0.00004045565939 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ 0.99999999981830 $ & $ 0.00000952946012 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ 0.99999999999970 $ & $ -0.00000047053993 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов интегрирования скоростей за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ v[1] $ &
+    $ v[2] $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ 0.00391996768321 $ & $ 0.50002409416594 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ 0.00008093349358 $ & $ 0.49999999860681 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ -0.00001905891802 $ & $ 0.49999999990922 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ 0.00000094108047 $ & $ 0.49999999999972 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Результаты вычисления интеграла энергии}
+
+Интеграл энергии вычисляется как
+
+\su
+\begin{equation}
+  \frac{1}{2} v^2 - \frac{\varkappa^2}{r} = E = const.
+\end{equation}
+
+Для указанных начальных данных $ E = -0.875 $.
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов вычисления интеграла энергии}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ E $ &
+    $ \Delta E $ \\
+    \midrule
+    $ 10^{-2} $ & $ 10^2 $ & $ -0.87500000110683 $ & $ 0.00000000110683 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 10^3 $ & $ -0.87500000000012 $ & $ 0.00000000000012 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 10^4 $ & $ -0.87500000000001 $ & $ 0.00000000000001 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 10^5 $ & $ -0.87500000000048 $ & $ 0.00000000000048 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\begin{frame}
+
+\begin{table}[h]
+  \centering
+  \caption{Сравнение результатов \\ вычисления интеграла энергии за цикл}
+  \begin{tabular}{cccc}
+    \toprule
+    $ h $ &
+    $ n $ &
+    $ E $ &
+    $ \Delta E $ \\
+    \midrule
+    $ 10^{-2} $ & $ 271 $ & $ -0.87504042479722 $ & $ 0.00004042479722 $ \\
+    \arrayrulecolor{black!40}
+    \midrule
+    $ 10^{-3} $ & $ 2714 $ & $ -0.87500000035035 $ & $ 0.00000000035035 $ \\
+    \midrule
+    $ 10^{-4} $ & $ 27141 $ & $ -0.87500000000006 $ & $ 0.00000000000006 $ \\
+    \midrule
+    $ 10^{-5} $ & $ 271408 $ & $ -0.87499999999989 $ & $ 0.00000000000011 $ \\
+    \arrayrulecolor{black}
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\end{frame}
+
+\end{document}

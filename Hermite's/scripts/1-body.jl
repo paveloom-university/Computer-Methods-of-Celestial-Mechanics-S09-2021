@@ -61,14 +61,15 @@ function hermite(
     jerk(r, v) = ϰ * (v / norm(r)^3 - 3 * (r ⋅ v) .* r / norm(r)^5)
     # Compute the solution
     for _ = 1:n
+        # Save old values
         rₒ, vₒ = copy(r), copy(v)
         aₒ, jₒ = acc(r), jerk(r, v)
-
+        # Predict position and velocity
         r += v * h + aₒ * (h^2 / 2) + jₒ * (h^3 / 6)
         v += aₒ * h + jₒ * (h^2 / 2)
-
+        # Predict acceleration and jerk
         a, j = acc(r), jerk(r, v)
-
+        # Correct velocity and position
         v = vₒ + (aₒ + a) * (h / 2) + (jₒ - j) * (h^2 / 12)
         r = rₒ + (vₒ + v) * (h / 2) + (aₒ - a) * (h^2 / 12)
     end
